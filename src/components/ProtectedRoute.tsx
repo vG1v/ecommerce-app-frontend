@@ -9,17 +9,13 @@ interface ProtectedRouteProps {
 const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
   const { isAuthenticated, loading } = useAuth();
   
-  // Show loading indicator while checking auth status
+  // Show loading
   if (loading) {
     return <div className="flex h-screen items-center justify-center">Loading...</div>;
   }
-  
-  // Redirect to login if not authenticated
   if (!isAuthenticated) {
     return <Navigate to="/login" replace />;
   }
-  
-  // Render children if authenticated
   return <>{children}</>;
 };
 

@@ -1,4 +1,3 @@
-// src/contexts/AuthContext.tsx
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import api from '../services/APIService';
 
@@ -6,13 +5,20 @@ interface User {
   id: number;
   name: string;
   email: string;
-  // Add other fields as needed
+  phone_number: string;
+}
+
+// Define a type for login credentials
+interface LoginCredentials {
+  email?: string;
+  phone_number?: string;
+  password: string;
 }
 
 interface AuthContextType {
   user: User | null;
   loading: boolean;
-  login: (email: string, password: string) => Promise<any>;
+  login: (credentials: LoginCredentials) => Promise<any>;
   logout: () => Promise<void>;
   isAuthenticated: boolean;
 }
@@ -24,12 +30,11 @@ export const AuthProvider: React.FC<{children: ReactNode}> = ({ children }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Check if user is already logged in
     const token = localStorage.getItem('token');
     if (token) {
       api.getUser()
-        .then(userData => {
-          setUser(userData);
+        .then(response => {
+          setUser(response.data);
         })
         .catch(() => {
           localStorage.removeItem('token');
@@ -42,13 +47,20 @@ export const AuthProvider: React.FC<{children: ReactNode}> = ({ children }) => {
     }
   }, []);
 
-  const login = async (email: string, password: string) => {
-    const response = await api.login({ email, password });
-    // Store token in localStorage
-    localStorage.setItem('token', response.token);
+  const login = async (credentials: LoginCredentials) => {
+    // Create a properly typed object for the API call
+    const loginPayload = {
+      email: credentials.email || "",
+      phone_number: credentials.phone_number || "",
+      password: credentials.password
+    };
     
-    setUser(response.user);
-    return response;
+    const response = await api.login(loginPayload);
+    const data = response.data;
+    localStorage.setItem('token', data.token);
+    
+    setUser(data.user);
+    return data;
   };
 
   const logout = async () => {
@@ -77,7 +89,6 @@ export const AuthProvider: React.FC<{children: ReactNode}> = ({ children }) => {
   );
 };
 
-// Custom hook to use the auth context
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (context === undefined) {

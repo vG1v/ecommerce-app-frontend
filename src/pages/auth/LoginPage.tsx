@@ -1,10 +1,9 @@
-// src/pages/LoginPage.tsx
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { useAuth } from '../contexts/AuthContext';
+import { useAuth } from '../../contexts/AuthContext';
 
-const LoginPage = () => {
-  const [email, setEmail] = useState('');
+const LoginPage: React.FC = () => {
+  const [identifier, setIdentifier] = useState(''); 
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -17,10 +16,16 @@ const LoginPage = () => {
     setError('');
     
     try {
-      await login(email, password);
-      navigate('/dashboard'); // Redirect after successful login
+      const isEmail = identifier.includes('@');
+      const credentials = {
+        [isEmail ? 'email' : 'phone_number']: identifier,
+        password
+      };
+      
+      await login(credentials);
+      navigate('/dashboard');
     } catch (err: any) {
-      setError(err.message || 'Login failed');
+      setError(err.response?.data?.message || 'Login failed. Please check your credentials.');
     } finally {
       setLoading(false);
     }
@@ -38,14 +43,14 @@ const LoginPage = () => {
       
       <form onSubmit={handleSubmit}>
         <div className="mb-4">
-          <label htmlFor="email" className="block text-gray-700 text-sm font-medium mb-2">
-            Email
+          <label htmlFor="identifier" className="block text-gray-700 text-sm font-medium mb-2">
+            Email or Phone Number
           </label>
           <input
-            type="email"
-            id="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
+            type="text"
+            id="identifier"
+            value={identifier}
+            onChange={(e) => setIdentifier(e.target.value)}
             className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             required
           />
