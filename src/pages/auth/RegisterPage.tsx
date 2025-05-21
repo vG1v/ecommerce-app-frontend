@@ -98,6 +98,21 @@ const RegisterPage: React.FC = () => {
             required
           />
         </div>
+        {/* Phone Number Field */}
+        <div className="mb-4">
+          <label htmlFor="phone_number" className="block text-gray-700 text-sm font-medium mb-2">
+            Phone Number
+          </label>
+          <input
+            type="phone_number"
+            id="phone_number"
+            name="phone_number"
+            value={formData.phone_number}
+            onChange={handleChange}
+            className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            required
+          />
+        </div>
         
         {/* Password Field */}
         <div className="mb-4">

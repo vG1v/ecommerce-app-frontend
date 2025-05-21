@@ -3,7 +3,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 
 const LoginPage: React.FC = () => {
-  const [identifier, setIdentifier] = useState(''); 
+  const [identifier, setIdentifier] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -14,15 +14,14 @@ const LoginPage: React.FC = () => {
     e.preventDefault();
     setLoading(true);
     setError('');
-    
+
     try {
-      const isEmail = identifier.includes('@');
-      const credentials = {
-        [isEmail ? 'email' : 'phone_number']: identifier,
+      const loginData = {
+        login: identifier.trim(),
         password
       };
-      
-      await login(credentials);
+
+      await login(loginData);
       navigate('/dashboard');
     } catch (err: any) {
       setError(err.response?.data?.message || 'Login failed. Please check your credentials.');
@@ -34,13 +33,13 @@ const LoginPage: React.FC = () => {
   return (
     <div className="bg-white p-8 rounded-lg shadow-md">
       <h1 className="text-2xl font-bold text-center text-gray-800 mb-6">Login</h1>
-      
+
       {error && (
         <div className="bg-red-50 text-red-600 p-3 rounded-md mb-4">
           {error}
         </div>
       )}
-      
+
       <form onSubmit={handleSubmit}>
         <div className="mb-4">
           <label htmlFor="identifier" className="block text-gray-700 text-sm font-medium mb-2">
@@ -79,10 +78,10 @@ const LoginPage: React.FC = () => {
           {loading ? 'Logging in...' : 'Login'}
         </button>
       </form>
-      
+
       <div className="mt-6 text-center">
         <p className="text-gray-600">
-          Don't have an account? 
+          Don't have an account?
           <Link to="/register" className="text-blue-600 hover:text-blue-800 ml-1">
             Register
           </Link>

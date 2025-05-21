@@ -8,8 +8,8 @@ interface User {
   phone_number: string;
 }
 
-// Define a type for login credentials
 interface LoginCredentials {
+  login?: string;
   email?: string;
   phone_number?: string;
   password: string;
@@ -48,10 +48,8 @@ export const AuthProvider: React.FC<{children: ReactNode}> = ({ children }) => {
   }, []);
 
   const login = async (credentials: LoginCredentials) => {
-    // Create a properly typed object for the API call
     const loginPayload = {
-      email: credentials.email || "",
-      phone_number: credentials.phone_number || "",
+      login: (credentials.login ?? credentials.email ?? credentials.phone_number ?? '').trim(),
       password: credentials.password
     };
     

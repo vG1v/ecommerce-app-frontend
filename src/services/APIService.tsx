@@ -5,7 +5,6 @@ const api = axios.create({
   withCredentials: true
 });
 
-// Add interceptors for auth
 api.interceptors.request.use(config => {
   const token = localStorage.getItem('token');
   if (token) {
@@ -15,38 +14,34 @@ api.interceptors.request.use(config => {
 });
 
 const APIService = {
-  // Authentication
-  login: (credentials: { email?: string; phone_number?: string; password: string }) => 
-    api.post('/login', credentials),
-  
-  register: (userData: { name: string; email: string; password: string; phone_number: string; password_confirmation: string }) => 
+  login: (loginData: { login: string; password: string }) => 
+    api.post('/login', loginData),
+
+  register: (userData: { name: string; email: string; password: string; phone_number: string; password_confirmation: string }) =>
     api.post('/register', userData),
-  
-  logout: () => 
+
+  logout: () =>
     api.post('/logout'),
-  
-  // User profile
-  getUser: () => 
+    
+  getUser: () =>
     api.get('/user'),
-  
-  updateProfile: (profileData: { name: string; email: string }) => 
+
+  updateProfile: (profileData: { name: string; email: string }) =>
     api.put('/profile', profileData),
-  
-  updatePassword: (passwordData: { current_password: string; new_password: string; new_password_confirmation: string }) => 
+
+  updatePassword: (passwordData: { current_password: string; new_password: string; new_password_confirmation: string }) =>
     api.put('/user/password', passwordData),
-  
-  // Products
-  getProducts: () => 
+    
+  getProducts: () =>
     api.get('/products'),
-  
-  getProduct: (id: number | string) => 
+
+  getProduct: (id: number | string) =>
     api.get(`/products/${id}`),
-  
-  // Cart
-  getCart: () => 
+    
+  getCart: () =>
     api.get('/cart'),
-  
-  addToCart: (productId: number, quantity: number = 1) => 
+
+  addToCart: (productId: number, quantity: number = 1) =>
     api.post('/cart/add', { product_id: productId, quantity })
 };
 
