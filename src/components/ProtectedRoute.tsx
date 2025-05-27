@@ -1,5 +1,5 @@
 import React from 'react';
-import { Navigate } from 'react-router-dom';
+import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 
 interface ProtectedRouteProps {
@@ -8,14 +8,22 @@ interface ProtectedRouteProps {
 
 const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
   const { isAuthenticated, loading } = useAuth();
-  
-  // Show loading
+  const location = useLocation();
+
   if (loading) {
-    return <div className="flex h-screen items-center justify-center">Loading...</div>;
+    // Show a loading spinner while checking auth status
+    return (
+      <div className="flex h-screen items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-amber-500"></div>
+      </div>
+    );
   }
+
   if (!isAuthenticated) {
-    return <Navigate to="/login" replace />;
+    // Redirect to login, but save the location they were trying to access
+    return <Navigate to="/login" state={{ from: location }} replace />;
   }
+
   return <>{children}</>;
 };
 

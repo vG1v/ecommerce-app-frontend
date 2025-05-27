@@ -42,7 +42,16 @@ const APIService = {
     api.get('/cart'),
 
   addToCart: (productId: number, quantity: number = 1) =>
-    api.post('/cart/add', { product_id: productId, quantity })
+    api.post('/cart/add', { product_id: productId, quantity }),
+
+  getCategories: () => 
+    api.get('/categories'),
+
+  searchProducts: (searchTerm: string) => 
+    api.get(`/products/search?q=${searchTerm}`),
+
+  getProductsByCategory: (categoryId: number) =>
+    api.get(`/categories/${categoryId}/products`),
 };
 
 export default APIService;

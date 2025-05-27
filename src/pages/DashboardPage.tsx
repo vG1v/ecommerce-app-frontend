@@ -2,9 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { Link } from 'react-router-dom';
 import Navbar from '../components/layout/Navbar';
-import StatCard from '../components/StatCard';
-import SectionCard from '../components/SectionCard';
-import ProductCard from '../components/ProductCard';
+import StatCard from '../components/card/StatCard';
+import SectionCard from '../components/card/SectionCard';
+import ProductCard from '../components/card/ProductCard';
 
 // Mock data for initial display
 const recentOrders = [
@@ -24,9 +24,9 @@ const DashboardPage: React.FC = () => {
   const { user } = useAuth();
   const [stats, setStats] = useState({
     totalOrders: 5,
-    totalSpent: 526.24,
+    lastSpent: 526.24,
     wishlistItems: 8,
-    cartItems: 2
+    cartItems: 0
   });
 
   useEffect(() => {
@@ -36,8 +36,8 @@ const DashboardPage: React.FC = () => {
   // Order status badge component (could also be extracted if needed elsewhere)
   const StatusBadge = ({ status }: { status: string }) => (
     <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
-      ${status === 'Delivered' ? 'bg-green-100 text-green-800' : 
-        status === 'Processing' ? 'bg-yellow-100 text-yellow-800' : 'bg-blue-100 text-blue-800'}`}>
+      ${status === 'Delivered' ? 'bg-green-100 text-green-800' :
+        status === 'Processing' ? 'bg-amber-100 text-amber-800' : 'bg-blue-100 text-blue-800'}`}>
       {status}
     </span>
   );
@@ -45,27 +45,27 @@ const DashboardPage: React.FC = () => {
   // Footer content for sections with "View all" links
   const renderFooterLink = (text: string, url: string) => (
     <div className="text-sm">
-      <Link to={url} className="font-medium text-blue-600 hover:text-blue-500">
+      <Link to={url} className="font-medium text-amber-600 hover:text-amber-500">
         {text}<span aria-hidden="true"> &rarr;</span>
       </Link>
     </div>
   );
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <Navbar cartItemsCount={stats.cartItems} />
+    <div className="min-h-screen bg-amber-50">
+      <Navbar theme="yellow" cartItemsCount={stats.cartItems} />
 
       {/* Main Content */}
       <div className="py-6">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <h1 className="text-2xl font-semibold text-gray-900">Welcome back, {user?.name}!</h1>
+          <h1 className="text-2xl font-semibold text-amber-800">Welcome back, {user?.name}!</h1>
         </div>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-8">
           {/* Stats Section */}
           <div className="mt-6">
             <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
               {/* Orders Stat */}
-              <StatCard 
+              <StatCard
                 title="Total Orders"
                 value={stats.totalOrders}
                 icon={
@@ -75,13 +75,14 @@ const DashboardPage: React.FC = () => {
                 }
                 linkText="View all orders"
                 linkUrl="/orders"
-                bgColor="bg-blue-500"
+                bgColor="bg-amber-600"
+                theme='yellow'
               />
 
               {/* Spent Stat */}
-              <StatCard 
-                title="Total Spent"
-                value={`$${stats.totalSpent.toFixed(2)}`}
+              <StatCard
+                title="Last Spent"
+                value={`$${stats.lastSpent.toFixed(2)}`}
                 icon={
                   <svg className="h-6 w-6 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -89,11 +90,12 @@ const DashboardPage: React.FC = () => {
                 }
                 linkText="View transactions"
                 linkUrl="/transactions"
-                bgColor="bg-green-500"
+                bgColor="bg-amber-700"
+                theme='yellow'
               />
 
               {/* Cart Stat */}
-              <StatCard 
+              <StatCard
                 title="Items in Cart"
                 value={stats.cartItems}
                 icon={
@@ -103,11 +105,12 @@ const DashboardPage: React.FC = () => {
                 }
                 linkText="View cart"
                 linkUrl="/cart"
-                bgColor="bg-indigo-500"
+                bgColor="bg-amber-800"
+                theme='yellow'
               />
 
               {/* Wishlist Stat */}
-              <StatCard 
+              <StatCard
                 title="Wishlist Items"
                 value={stats.wishlistItems}
                 icon={
@@ -117,54 +120,55 @@ const DashboardPage: React.FC = () => {
                 }
                 linkText="View wishlist"
                 linkUrl="/wishlist"
-                bgColor="bg-red-500"
+                bgColor="bg-amber-500"
+                theme='yellow'
               />
             </div>
           </div>
 
           {/* Recent Orders */}
           <div className="mt-8">
-            <SectionCard 
-              title="Recent Orders" 
+            <SectionCard
+              title="Recent Orders"
               footerContent={renderFooterLink("View all orders", "/orders")}
             >
               <div className="overflow-x-auto">
-                <table className="min-w-full divide-y divide-gray-200">
-                  <thead className="bg-gray-50">
+                <table className="min-w-full divide-y divide-amber-200">
+                  <thead className="bg-amber-50">
                     <tr>
-                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-amber-700 uppercase tracking-wider">
                         Order ID
                       </th>
-                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-amber-700 uppercase tracking-wider">
                         Date
                       </th>
-                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-amber-700 uppercase tracking-wider">
                         Total
                       </th>
-                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-amber-700 uppercase tracking-wider">
                         Status
                       </th>
-                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-amber-700 uppercase tracking-wider">
                         Action
                       </th>
                     </tr>
                   </thead>
-                  <tbody className="bg-white divide-y divide-gray-200">
+                  <tbody className="bg-white divide-y divide-amber-100">
                     {recentOrders.map((order) => (
-                      <tr key={order.id}>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                      <tr key={order.id} className="hover:bg-amber-50">
+                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-amber-900">
                           #{order.id}
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-amber-800">
                           {order.date}
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-amber-800">
                           ${order.total.toFixed(2)}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           <StatusBadge status={order.status} />
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-blue-600 hover:text-blue-900">
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-amber-600 hover:text-amber-800">
                           <Link to={`/orders/${order.id}`}>
                             View Details
                           </Link>
@@ -179,13 +183,13 @@ const DashboardPage: React.FC = () => {
 
           {/* Featured Products */}
           <div className="mt-8">
-            <SectionCard 
-              title="Featured Products" 
+            <SectionCard
+              title="Featured Products"
               footerContent={renderFooterLink("View all products", "/products")}
             >
               <div className="p-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                 {featuredProducts.map((product) => (
-                  <ProductCard key={product.id} product={product} />
+                  <ProductCard key={product.id} product={product} theme="yellow" />
                 ))}
               </div>
             </SectionCard>

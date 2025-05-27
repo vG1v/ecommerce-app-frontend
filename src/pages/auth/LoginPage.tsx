@@ -1,6 +1,11 @@
 import React, { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
+import AuthFormContainer from '../../components/form/AuthFormContainer';
+import FormInput from '../../components/form/FormInput';
+import FormError from '../../components/form/FormError';
+import SubmitButton from '../../components/props/SubmitButton';
+import AuthLinkFooter from '../../components/props/AuthLinkFooter';
 
 const LoginPage: React.FC = () => {
   const [identifier, setIdentifier] = useState('');
@@ -8,6 +13,7 @@ const LoginPage: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const navigate = useNavigate();
+  const location = useLocation();
   const { login } = useAuth();
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -22,7 +28,10 @@ const LoginPage: React.FC = () => {
       };
 
       await login(loginData);
-      navigate('/dashboard');
+      
+      // Redirect to Homepage
+      const redirectTo = location.state?.from?.pathname || '/';
+      navigate(redirectTo);
     } catch (err: any) {
       setError(err.response?.data?.message || 'Login failed. Please check your credentials.');
     } finally {
@@ -31,63 +40,43 @@ const LoginPage: React.FC = () => {
   };
 
   return (
-    <div className="bg-white p-8 rounded-lg shadow-md">
-      <h1 className="text-2xl font-bold text-center text-gray-800 mb-6">Login</h1>
-
-      {error && (
-        <div className="bg-red-50 text-red-600 p-3 rounded-md mb-4">
-          {error}
-        </div>
-      )}
-
+    <AuthFormContainer title="Welcome Back">
+      <FormError error={error} />
+      
       <form onSubmit={handleSubmit}>
-        <div className="mb-4">
-          <label htmlFor="identifier" className="block text-gray-700 text-sm font-medium mb-2">
-            Email or Phone Number
-          </label>
-          <input
-            type="text"
-            id="identifier"
-            value={identifier}
-            onChange={(e) => setIdentifier(e.target.value)}
-            className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-            required
-          />
-        </div>
+        <FormInput
+          id="identifier"
+          name="identifier"
+          type="text"
+          value={identifier}
+          onChange={(e) => setIdentifier(e.target.value)}
+          label="Email or Phone Number"
+          required={true}
+        />
         
-        <div className="mb-6">
-          <label htmlFor="password" className="block text-gray-700 text-sm font-medium mb-2">
-            Password
-          </label>
-          <input
-            type="password"
-            id="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-            required
-          />
-        </div>
+        <FormInput
+          id="password"
+          name="password"
+          type="password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          label="Password"
+          required={true}
+        />
         
-        <button 
-          type="submit" 
-          className={`w-full py-3 px-4 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-md 
-            transition duration-200 ${loading ? 'opacity-70 cursor-not-allowed' : ''}`}
-          disabled={loading}
-        >
-          {loading ? 'Logging in...' : 'Login'}
-        </button>
+        <SubmitButton
+          loading={loading}
+          loadingText="Logging in..."
+          text="Login"
+        />
       </form>
-
-      <div className="mt-6 text-center">
-        <p className="text-gray-600">
-          Don't have an account?
-          <Link to="/register" className="text-blue-600 hover:text-blue-800 ml-1">
-            Register
-          </Link>
-        </p>
-      </div>
-    </div>
+      
+      <AuthLinkFooter
+        promptText="Don't have an account?"
+        linkText="Register"
+        linkTo="/register"
+      />
+    </AuthFormContainer>
   );
 };
 
