@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import api from '../services/APIService';
+import Navbar from '../components/layout/Navbar';
 
 const UpdateProfilePage: React.FC = () => {
   const { user, loading: authLoading } = useAuth();
@@ -9,6 +10,7 @@ const UpdateProfilePage: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState('');
   const [error, setError] = useState('');
+  const [cartItemCount, setCartItemCount] = useState(0);
   
   // Separate form data for profile and password
   const [profileData, setProfileData] = useState({
@@ -29,6 +31,11 @@ const UpdateProfilePage: React.FC = () => {
         name: user.name || '',
         email: user.email || ''
       });
+      
+      // Get cart count
+      api.getCart()
+        .then(res => setCartItemCount(res.data.items.length))
+        .catch(() => {});
     }
   }, [user]);
 
@@ -53,7 +60,6 @@ const UpdateProfilePage: React.FC = () => {
     setSuccess('');
     
     try {
-      // Add this method to your APIService
       const response = await api.updateProfile(profileData);
       setSuccess('Profile updated successfully!');
     } catch (err: any) {
@@ -83,7 +89,6 @@ const UpdateProfilePage: React.FC = () => {
     setSuccess('');
     
     try {
-      // Add this method to your APIService
       await api.updatePassword(passwordData);
       setSuccess('Password updated successfully!');
       setPasswordData({
@@ -107,149 +112,156 @@ const UpdateProfilePage: React.FC = () => {
 
   if (authLoading) {
     return (
-      <div className="flex justify-center items-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
+      <div className="min-h-screen bg-gray-50">
+        <Navbar cartItemsCount={cartItemCount} theme="yellow" />
+        <div className="flex justify-center items-center h-64">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-amber-500"></div>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="max-w-4xl mx-auto px-4 py-8">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">Update Profile</h1>
-        <button 
-          onClick={() => navigate('/dashboard')} 
-          className="px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-md"
-        >
-          Back to Dashboard
-        </button>
-      </div>
-
-      {success && (
-        <div className="bg-green-50 text-green-700 p-4 rounded-md mb-6">
-          {success}
-        </div>
-      )}
+    <div className="min-h-screen bg-gray-50">
+      <Navbar cartItemsCount={cartItemCount} theme="yellow" />
       
-      {error && (
-        <div className="bg-red-50 text-red-600 p-4 rounded-md mb-6">
-          {error}
+      <div className="max-w-4xl mx-auto px-4 py-8">
+        <div className="flex justify-between items-center mb-6">
+          <h1 className="text-2xl font-bold text-gray-900">Update Profile</h1>
+          <button 
+            onClick={() => navigate('/')} 
+            className="px-4 py-2 bg-amber-200 hover:bg-amber-300 text-amber-800 rounded-md"
+          >
+            Back to Home
+          </button>
         </div>
-      )}
 
-      <div className="bg-white shadow-md rounded-lg mb-8">
-        <div className="p-6 border-b border-gray-200">
-          <h2 className="text-xl font-semibold text-gray-800">Personal Information</h2>
+        {success && (
+          <div className="bg-green-50 text-green-700 p-4 rounded-md mb-6 border-l-4 border-green-500">
+            {success}
+          </div>
+        )}
+        
+        {error && (
+          <div className="bg-red-50 text-red-600 p-4 rounded-md mb-6 border-l-4 border-red-500">
+            {error}
+          </div>
+        )}
+
+        <div className="bg-white shadow-md rounded-lg mb-8">
+          <div className="p-6 border-b border-gray-200 bg-gradient-to-r from-amber-500 to-yellow-500">
+            <h2 className="text-xl font-semibold text-white">Personal Information</h2>
+          </div>
+          <div className="p-6">
+            <form onSubmit={handleProfileSubmit}>
+              <div className="mb-4">
+                <label htmlFor="name" className="block text-gray-700 text-sm font-medium mb-2">
+                  Name
+                </label>
+                <input
+                  type="text"
+                  id="name"
+                  name="name"
+                  value={profileData.name}
+                  onChange={handleProfileChange}
+                  className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500"
+                  required
+                />
+              </div>
+              
+              <div className="mb-6">
+                <label htmlFor="email" className="block text-gray-700 text-sm font-medium mb-2">
+                  Email
+                </label>
+                <input
+                  type="email"
+                  id="email"
+                  name="email"
+                  value={profileData.email}
+                  onChange={handleProfileChange}
+                  className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500"
+                  required
+                />
+              </div>
+              
+              <div className="flex justify-end">
+                <button 
+                  type="submit" 
+                  className={`px-6 py-2 bg-amber-600 hover:bg-amber-700 text-white font-medium rounded-md 
+                    transition duration-200 ${loading ? 'opacity-70 cursor-not-allowed' : ''}`}
+                  disabled={loading}
+                >
+                  {loading ? 'Updating...' : 'Update Profile'}
+                </button>
+              </div>
+            </form>
+          </div>
         </div>
-        <div className="p-6">
-          <form onSubmit={handleProfileSubmit}>
-            <div className="mb-4">
-              <label htmlFor="name" className="block text-gray-700 text-sm font-medium mb-2">
-                Name
-              </label>
-              <input
-                type="text"
-                id="name"
-                name="name"
-                value={profileData.name}
-                onChange={handleProfileChange}
-                className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                required
-              />
-            </div>
-            
-            <div className="mb-6">
-              <label htmlFor="email" className="block text-gray-700 text-sm font-medium mb-2">
-                Email
-              </label>
-              <input
-                type="email"
-                id="email"
-                name="email"
-                value={profileData.email}
-                onChange={handleProfileChange}
-                className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                required
-              />
-            </div>
-            
-            <div className="flex justify-end">
-              <button 
-                type="submit" 
-                className={`px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-md 
-                  transition duration-200 ${loading ? 'opacity-70 cursor-not-allowed' : ''}`}
-                disabled={loading}
-              >
-                {loading ? 'Updating...' : 'Update Profile'}
-              </button>
-            </div>
-          </form>
-        </div>
-      </div>
-      
-      <div className="bg-white shadow-md rounded-lg">
-        <div className="p-6 border-b border-gray-200">
-          <h2 className="text-xl font-semibold text-gray-800">Change Password</h2>
-        </div>
-        <div className="p-6">
-          <form onSubmit={handlePasswordSubmit}>
-            <div className="mb-4">
-              <label htmlFor="current_password" className="block text-gray-700 text-sm font-medium mb-2">
-                Current Password
-              </label>
-              <input
-                type="password"
-                id="current_password"
-                name="current_password"
-                value={passwordData.current_password}
-                onChange={handlePasswordChange}
-                className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                required
-              />
-            </div>
-            
-            <div className="mb-4">
-              <label htmlFor="new_password" className="block text-gray-700 text-sm font-medium mb-2">
-                New Password
-              </label>
-              <input
-                type="password"
-                id="new_password"
-                name="new_password"
-                value={passwordData.new_password}
-                onChange={handlePasswordChange}
-                className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                required
-                minLength={8}
-              />
-            </div>
-            
-            <div className="mb-6">
-              <label htmlFor="new_password_confirmation" className="block text-gray-700 text-sm font-medium mb-2">
-                Confirm New Password
-              </label>
-              <input
-                type="password"
-                id="new_password_confirmation"
-                name="new_password_confirmation"
-                value={passwordData.new_password_confirmation}
-                onChange={handlePasswordChange}
-                className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                required
-              />
-            </div>
-            
-            <div className="flex justify-end">
-              <button 
-                type="submit" 
-                className={`px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-md 
-                  transition duration-200 ${loading ? 'opacity-70 cursor-not-allowed' : ''}`}
-                disabled={loading}
-              >
-                {loading ? 'Updating...' : 'Change Password'}
-              </button>
-            </div>
-          </form>
+        
+        <div className="bg-white shadow-md rounded-lg">
+          <div className="p-6 border-b border-gray-200 bg-gradient-to-r from-amber-500 to-yellow-500">
+            <h2 className="text-xl font-semibold text-white">Change Password</h2>
+          </div>
+          <div className="p-6">
+            <form onSubmit={handlePasswordSubmit}>
+              <div className="mb-4">
+                <label htmlFor="current_password" className="block text-gray-700 text-sm font-medium mb-2">
+                  Current Password
+                </label>
+                <input
+                  type="password"
+                  id="current_password"
+                  name="current_password"
+                  value={passwordData.current_password}
+                  onChange={handlePasswordChange}
+                  className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500"
+                  required
+                />
+              </div>
+              
+              <div className="mb-4">
+                <label htmlFor="new_password" className="block text-gray-700 text-sm font-medium mb-2">
+                  New Password
+                </label>
+                <input
+                  type="password"
+                  id="new_password"
+                  name="new_password"
+                  value={passwordData.new_password}
+                  onChange={handlePasswordChange}
+                  className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500"
+                  required
+                  minLength={8}
+                />
+              </div>
+              
+              <div className="mb-6">
+                <label htmlFor="new_password_confirmation" className="block text-gray-700 text-sm font-medium mb-2">
+                  Confirm New Password
+                </label>
+                <input
+                  type="password"
+                  id="new_password_confirmation"
+                  name="new_password_confirmation"
+                  value={passwordData.new_password_confirmation}
+                  onChange={handlePasswordChange}
+                  className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500"
+                  required
+                />
+              </div>
+              
+              <div className="flex justify-end">
+                <button 
+                  type="submit" 
+                  className={`px-6 py-2 bg-amber-600 hover:bg-amber-700 text-white font-medium rounded-md 
+                    transition duration-200 ${loading ? 'opacity-70 cursor-not-allowed' : ''}`}
+                  disabled={loading}
+                >
+                  {loading ? 'Updating...' : 'Change Password'}
+                </button>
+              </div>
+            </form>
+          </div>
         </div>
       </div>
     </div>

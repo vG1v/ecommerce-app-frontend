@@ -12,6 +12,7 @@ import ProductDetailPage from './pages/ProductDetailPage';
 import ProductPage from './pages/ProductPage';
 import VendorDetailPage from './pages/VendorDetailPage';
 import VendorPage from './pages/VendorPage';
+import CartPage from './pages/CartPage';
 import './App.css';
 
 
@@ -33,6 +34,7 @@ function App() {
 
           {/* Protected Routes */}
           <Route path="/dashboard" element={<ProtectedRoute><DashboardPage /></ProtectedRoute>} />
+          <Route path="/cart" element={<ProtectedRoute><CartPage /></ProtectedRoute>} />
           <Route path="/profile" element={<ProtectedRoute><UpdateProfilePage /></ProtectedRoute>} />
           {/* <Route path="/cart" element={<ProtectedRoute><CartPage /></ProtectedRoute>} />
           <Route path="/wishlist" element={<ProtectedRoute><WishlistPage /></ProtectedRoute>} />

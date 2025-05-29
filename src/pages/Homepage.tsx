@@ -5,13 +5,21 @@ import { useAuth } from "../contexts/AuthContext";
 import ProductCard from "../components/card/ProductCard";
 import Navbar from "../components/layout/Navbar";
 
-// Types
 interface Product {
   id: number;
   name: string;
+  slug: string;
+  short_description?: string;
   price: number;
-  image: string;
-  category: string;
+  sale_price?: number;
+  on_sale?: boolean;
+  main_image_path: string;
+  stock_status?: string;
+  featured?: boolean;
+  average_rating?: number;
+  review_count?: number;
+  vendor_id?: number;
+  category?: string;
 }
 
 interface Category {
@@ -29,22 +37,71 @@ const Homepage: React.FC = () => {
   const [selectedCategory, setSelectedCategory] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
   const [cartItemCount, setCartItemCount] = useState(0);
+  const [featuredProducts, setFeaturedProducts] = useState<Product[]>([]);
 
-  // Fetch products and categories
+  const mockCategories = [
+    { id: 1, name: "Electronics" },
+    { id: 2, name: "Fashion" },
+    { id: 3, name: "Home & Kitchen" },
+    { id: 4, name: "Beauty" },
+    { id: 5, name: "Sports" },
+    { id: 6, name: "Books" },
+    { id: 7, name: "Toys" },
+    { id: 8, name: "Health" },
+  ];
+
+  const mockProducts: Product[] = [
+    { id: 1, name: "Wireless Earbuds", slug: "wireless-earbuds", price: 29.99, main_image_path: "https://placehold.co/300x300?text=Earbuds", category: "Electronics" },
+    { id: 2, name: "Smart Watch", slug: "smart-watch", price: 89.99, main_image_path: "https://placehold.co/300x300?text=Watch", category: "Electronics" },
+    { id: 3, name: "Summer T-Shirt", slug: "summer-t-shirt", price: 19.99, main_image_path: "https://placehold.co/300x300?text=T-Shirt", category: "Fashion" },
+    { id: 4, name: "Kitchen Blender", slug: "kitchen-blender", price: 49.99, main_image_path: "https://placehold.co/300x300?text=Blender", category: "Home & Kitchen" },
+    { id: 5, name: "Bluetooth Speaker", slug: "bluetooth-speaker", price: 39.99, main_image_path: "https://placehold.co/300x300?text=Speaker", category: "Electronics" },
+    { id: 6, name: "Running Shoes", slug: "running-shoes", price: 59.99, main_image_path: "https://placehold.co/300x300?text=Shoes", category: "Fashion" },
+    { id: 7, name: "Coffee Maker", slug: "coffee-maker", price: 69.99, main_image_path: "https://placehold.co/300x300?text=Coffee", category: "Home & Kitchen" },
+    { id: 8, name: "Yoga Mat", slug: "yoga-mat", price: 24.99, main_image_path: "https://placehold.co/300x300?text=Yoga", category: "Sports" },
+  ];
+
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [productsRes, categoriesRes] = await Promise.all([
-          api.getProducts(),
-          api.getCategories(),
-        ]);
+        setLoading(true);
         
-        setProducts(productsRes.data);
-        setFilteredProducts(productsRes.data);
-        setCategories(categoriesRes.data);
+        const productsRes = await api.getProducts();
+        
+        let productsArray;
+        if (Array.isArray(productsRes.data)) {
+          productsArray = productsRes.data;
+        } else if (productsRes.data && typeof productsRes.data === 'object') {
+          productsArray = productsRes.data.data || productsRes.data.products || [];
+        } else {
+          productsArray = [];
+        }
+        
+        const formattedProducts: Product[] = productsArray.map((p: any) => ({
+          id: p.id,
+          name: p.name,
+          slug: p.slug || `product-${p.id}`,
+          short_description: p.short_description,
+          price: Number(p.price || 0),
+          sale_price: p.sale_price ? Number(p.sale_price) : undefined,
+          on_sale: p.on_sale || false,
+          main_image_path: p.main_image_path || "https://placehold.co/300x300?text=No+Image",
+          stock_status: p.stock_status || "instock",
+          featured: p.featured || false,
+          average_rating: p.average_rating ? parseFloat(p.average_rating) : undefined,
+          review_count: p.review_count,
+          vendor_id: p.vendor_id,
+          category: p.category?.name || "Uncategorized" 
+        }));
+        
+        setProducts(formattedProducts);
+        setFilteredProducts(formattedProducts);
+        setCategories(mockCategories);
         setLoading(false);
       } catch (error) {
-        console.error("Failed to fetch data", error);
+        setProducts(mockProducts);
+        setFilteredProducts(mockProducts);
+        setCategories(mockCategories);
         setLoading(false);
       }
     };
@@ -52,28 +109,50 @@ const Homepage: React.FC = () => {
     fetchData();
   }, []);
 
-  // Fetch cart item count
+  useEffect(() => {
+    const fetchFeaturedProducts = async () => {
+      try {
+        const response = await api.getFeaturedProducts();
+        
+        let featuredArray;
+        if (Array.isArray(response.data)) {
+          featuredArray = response.data;
+        } else if (response.data && typeof response.data === 'object') {
+          featuredArray = response.data.data || response.data.products || [];
+        } else {
+          featuredArray = [];
+        }
+        
+        setFeaturedProducts(featuredArray);
+      } catch (error) {
+        setFeaturedProducts(mockProducts.slice(0, 6));
+      }
+    };
+    
+    fetchFeaturedProducts();
+  }, []);
+
   useEffect(() => {
     if (user) {
       api.getCart()
         .then(res => setCartItemCount(res.data.items.length))
-        .catch(err => console.error("Failed to fetch cart", err));
+        .catch(err => {});
     }
   }, [user]);
 
-  // Filter products by search term and category
   useEffect(() => {
     let result = products;
     
-    // Filter by category
     if (selectedCategory) {
-      const categoryName = categories.find(cat => cat.id === selectedCategory)?.name;
+      const categoryName = mockCategories.find(cat => cat.id === selectedCategory)?.name;
       if (categoryName) {
-        result = result.filter(product => product.category === categoryName);
+        result = result.filter(product => 
+          product.category === categoryName ||
+          product.category?.includes(categoryName)
+        );
       }
     }
     
-    // Filter by search term
     if (searchTerm) {
       const term = searchTerm.toLowerCase();
       result = result.filter(product => 
@@ -86,7 +165,6 @@ const Homepage: React.FC = () => {
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
-    // The filtering is handled in useEffect
   };
 
   const handleAddToCart = (productId: number) => {
@@ -95,42 +173,25 @@ const Homepage: React.FC = () => {
       return;
     }
     
-    // Add to cart logic
+    api.addToCart(productId, 1)
+      .then(response => {
+        setCartItemCount(prev => prev + 1);
+        alert("Product added to cart successfully");
+      })
+      .catch(error => {
+        alert("Failed to add product to cart");
+      });
   };
 
-  // Mock categories and featured products for initial display
-  const mockCategories = [
-    { id: 1, name: "Electronics" },
-    { id: 2, name: "Fashion" },
-    { id: 3, name: "Home & Kitchen" },
-    { id: 4, name: "Beauty" },
-    { id: 5, name: "Sports" },
-    { id: 6, name: "Books" },
-    { id: 7, name: "Toys" },
-    { id: 8, name: "Health" },
-  ];
-
-  const mockProducts = [
-    { id: 1, name: "Wireless Earbuds", price: 29.99, image: "https://placehold.co/300x300?text=Earbuds", category: "Electronics" },
-    { id: 2, name: "Smart Watch", price: 89.99, image: "https://placehold.co/300x300?text=Watch", category: "Electronics" },
-    { id: 3, name: "Summer T-Shirt", price: 19.99, image: "https://placehold.co/300x300?text=T-Shirt", category: "Fashion" },
-    { id: 4, name: "Kitchen Blender", price: 49.99, image: "https://placehold.co/300x300?text=Blender", category: "Home & Kitchen" },
-    { id: 5, name: "Bluetooth Speaker", price: 39.99, image: "https://placehold.co/300x300?text=Speaker", category: "Electronics" },
-    { id: 6, name: "Running Shoes", price: 59.99, image: "https://placehold.co/300x300?text=Shoes", category: "Fashion" },
-    { id: 7, name: "Coffee Maker", price: 69.99, image: "https://placehold.co/300x300?text=Coffee", category: "Home & Kitchen" },
-    { id: 8, name: "Yoga Mat", price: 24.99, image: "https://placehold.co/300x300?text=Yoga", category: "Sports" },
-  ];
-
-  // Use mock data until API is implemented
   const displayCategories = categories.length ? categories : mockCategories;
-  const displayProducts = loading ? mockProducts : filteredProducts;
+  const displayProducts = loading ? [] : 
+                         products.length > 0 ? filteredProducts : 
+                         mockProducts;
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Navbar with yellow theme */}
       <Navbar cartItemsCount={cartItemCount} theme="yellow" />
 
-      {/* Hero section with search */}
       <div className="bg-gradient-to-r from-yellow-400 via-yellow-500 to-amber-500 py-8">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center">
@@ -139,7 +200,6 @@ const Homepage: React.FC = () => {
               <span className="block text-yellow-900">Everything You Need, All in One Place</span>
             </h1>
             
-            {/* Search Bar */}
             <form 
               onSubmit={handleSearch}
               className="mt-8 max-w-3xl mx-auto flex rounded-full shadow-lg overflow-hidden"
@@ -162,7 +222,6 @@ const Homepage: React.FC = () => {
         </div>
       </div>
       
-      {/* Category Menu */}
       <div className="bg-amber-100 shadow-md">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex overflow-x-auto py-3 space-x-6 no-scrollbar">
@@ -193,7 +252,6 @@ const Homepage: React.FC = () => {
         </div>
       </div>
       
-      {/* Flash Deals */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-8">
         <div className="bg-gradient-to-r from-amber-500 to-yellow-500 rounded-lg p-4 shadow-lg">
           <div className="flex justify-between items-center">
@@ -209,20 +267,59 @@ const Homepage: React.FC = () => {
           </div>
           
           <div className="mt-4 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
-            {mockProducts.slice(0, 6).map(product => (
-              <div key={product.id} className="bg-white rounded-lg overflow-hidden shadow-md transform hover:scale-105 transition-transform duration-200">
-                <img src={product.image} alt={product.name} className="w-full h-24 object-cover" />
-                <div className="p-2">
-                  <div className="text-amber-700 font-bold">${product.price.toFixed(2)}</div>
-                  <div className="text-xs text-red-600 font-semibold">50% OFF</div>
+            {featuredProducts.length > 0 ? 
+              featuredProducts.map(product => (
+                <div 
+                  key={product.id} 
+                  className="bg-white rounded-lg overflow-hidden shadow-md transform hover:scale-105 transition-transform duration-200"
+                  onClick={() => navigate(`/products/${product.slug || product.id}`)}
+                >
+                  <img 
+                    src={product.main_image_path} 
+                    alt={product.name} 
+                    className="w-full h-24 object-cover"
+                  />
+                  <div className="p-2">
+                    <div className="text-amber-700 font-bold">
+                      ${product.sale_price ? Number(product.sale_price).toFixed(2) : Number(product.price).toFixed(2)}
+                    </div>
+                    {product.on_sale && product.sale_price && (
+                      <div className="text-xs text-red-600 font-semibold">
+                        {Math.round((1 - Number(product.sale_price) / Number(product.price)) * 100)}% OFF
+                      </div>
+                    )}
+                  </div>
                 </div>
-              </div>
-            ))}
+              ))
+              : 
+              mockProducts.slice(0, 6).map(product => (
+                <div 
+                  key={product.id} 
+                  className="bg-white rounded-lg overflow-hidden shadow-md transform hover:scale-105 transition-transform duration-200"
+                  onClick={() => navigate(`/products/${product.slug || product.id}`)}
+                >
+                  <img 
+                    src={product.main_image_path} 
+                    alt={product.name} 
+                    className="w-full h-24 object-cover"
+                  />
+                  <div className="p-2">
+                    <div className="text-amber-700 font-bold">
+                      ${product.sale_price ? Number(product.sale_price).toFixed(2) : Number(product.price).toFixed(2)}
+                    </div>
+                    {product.on_sale && product.sale_price && (
+                      <div className="text-xs text-red-600 font-semibold">
+                        {Math.round((1 - Number(product.sale_price) / Number(product.price)) * 100)}% OFF
+                      </div>
+                    )}
+                  </div>
+                </div>
+              ))
+            }
           </div>
         </div>
       </div>
       
-      {/* Main Products */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <h2 className="text-2xl font-bold text-gray-900 mb-6">Products For You</h2>
         
@@ -234,16 +331,31 @@ const Homepage: React.FC = () => {
               ))}
             </div>
           </div>
-        ) : (
+        ) : products.length > 0 ? (
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-            {displayProducts.map((product) => (
+            {filteredProducts.map((product) => (
               <ProductCard 
                 key={product.id} 
-                product={product} 
+                product={{
+                  id: product.id,
+                  name: product.name,
+                  price: Number(product.price || 0),
+                  image: product.main_image_path,
+                  category: product.category || "",
+                  salePrice: product.sale_price ? Number(product.sale_price) : undefined,
+                  onSale: !!product.on_sale,
+                  rating: product.average_rating ? Number(product.average_rating) : undefined,
+                  reviewCount: product.review_count
+                }}
                 theme="yellow"
-                onClick={() => navigate(`/products/${product.id}`)}
+                onClick={() => navigate(`/products/${product.slug || product.id}`)}
+                onAddToCart={() => handleAddToCart(product.id)}
               />
             ))}
+          </div>
+        ) : (
+          <div className="text-center py-12">
+            <p className="text-gray-500">No products found. Please try a different search or category.</p>
           </div>
         )}
       </div>
